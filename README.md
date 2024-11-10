@@ -8,6 +8,8 @@
 
 本体项目[SpadeKTLSG-Note-Allin1](https://github.com/SpadeKTLSG/SpadeKTLSG-Note-Allin1)
 
+推荐使用SiYuan, Notion等笔记软件阅读
+
 ## 内容
 
 - my_face_exp
