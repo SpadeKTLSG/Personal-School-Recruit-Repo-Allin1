@@ -8,7 +8,9 @@
 
 本体项目[SpadeKTLSG-Note-Allin1](https://github.com/SpadeKTLSG/SpadeKTLSG-Note-Allin1)
 
-推荐使用SiYuan, Notion等笔记软件阅读
+推荐使用SiYuan, Notion等笔记软件阅读, VSCode装个插件也行
+
+-- 400K, 11/11/2024 可是有些吓人的字数
 
 ## 内容
 
