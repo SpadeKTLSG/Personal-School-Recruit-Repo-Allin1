@@ -2,7 +2,6 @@
 *.class
 *.idea
 # Log file
-*.log
 
 # BlueJ files
 *.ctxt
