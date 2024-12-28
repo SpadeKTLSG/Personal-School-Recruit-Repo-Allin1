@@ -94,6 +94,14 @@ ORM 的缺点是效率低，另外有些场景只能用原生 SQL 实现。
 
 ‍
 
+### 逻辑分页和物理分页
+
+逻辑就是手动分页, 物理就是用MYSQL去Limit查
+
+‍
+
+‍
+
 # 大块
 
 ‍
@@ -253,3 +261,131 @@ public class KeysetPaginationExample {
     }
 }
 ```
+
+‍
+
+‍
+
+## MyBatis执行流程
+
+​![image](assets/image-20241114235401-gfy6dur.png)​
+
+1. 读取MyBatis配置文件：mybatis-config.xml加载运行环境和映射文件
+2. 构造会话工厂SqlSessionFactory
+3. 会话工厂创建SqlSession对象（包含了执行SQL语句的所有方法）
+4. 操作数据库的接口，Executor执行器，同时负责查询缓存的维护
+5. Executor接口的执行方法中有一个MappedStatement类型的参数，封装了映射信息
+6. 输入参数映射
+7. 输出结果映射
+
+‍
+
+## Mybatis是否支持延迟加载？
+
+Mybatis支持延迟记载，但默认没有开启  
+什么叫做延迟加载？ --List<ids>这样的字段不会先给你查出来
+
+​![image](assets/image-20241114235439-rw2mjyo.png)​
+
+‍
+
+延迟加载的意思是：就是在需要用到数据时才进行加载，不需要用到数据时就不加载数据。  
+Mybatis支持一对一关联对象和一对多关联集合对象的延迟加载  
+在Mybatis配置文件中，可以配置是否启用延迟加载lazyLoadingEnabled=true|false，默认是关闭的
+
+‍
+
+‍
+
+‍
+
+延迟加载的底层原理知道吗？
+
+1. 使用CGLIB创建目标对象的代理对象
+2. 当调用目标方法时，进入拦截器invoke方法，发现目标方法是null值，执行sql查询
+3. 获取数据以后，调用set方法设置属性值，再继续查询目标方法，就有值了
+
+‍
+
+‍
+
+> **面试官**：Mybatis是否支持延迟加载？
+>
+> **候选人**：
+>
+> 是支持的~
+>
+> 延迟加载的意思是：就是在需要用到数据时才进行加载，不需要用到数据时就不加载数据。
+>
+> Mybatis支持一对一关联对象和一对多关联集合对象的延迟加载
+>
+> 在Mybatis配置文件中，可以配置是否启用延迟加载lazyLoadingEnabled=true|false，默认是关闭的
+>
+> **面试官**：延迟加载的底层原理知道吗？
+>
+> **候选人**：
+>
+> 嗯，我想想啊
+>
+> 延迟加载在底层主要使用的CGLIB动态代理完成的
+>
+> 第一是，使用CGLIB创建目标对象的代理对象，这里的目标对象就是开启了延迟加载的mapper
+>
+> 第二个是当调用目标方法时，进入拦截器invoke方法，发现目标方法是null值，再执行sql查询
+>
+> 第三个是获取数据以后，调用set方法设置属性值，再继续查询目标方法，就有值了
+
+‍
+
+## Mybatis的一级、二级缓存用过吗？
+
+‍
+
+> mybatis的一级缓存: 基于 PerpetualCache 的 HashMap 本地缓存，其存储作用域为 Session，当Session进行flush或close之后，该Session中的所有Cache就将清空，默认打开一级缓存
+>
+> 关于二级缓存需要单独开启
+>
+> 二级缓存是基于namespace和mapper的作用域起作用的，不是依赖于SQL session，默认也是采用 PerpetualCache，HashMap 存储。
+>
+> 如果想要开启二级缓存需要在全局配置文件和映射文件中开启配置才行。
+>
+> **面试官**：Mybatis的二级缓存什么时候会清理缓存中的数据
+>
+> **候选人**：
+>
+> 嗯！！
+>
+> 当某一个作用域(一级缓存 Session/二级缓存Namespaces)的进行了新增、修改、删除操作后，默认该作用域下所有 select 中的缓存将被 clear。
+
+‍
+
+> 一级缓存: 基于 PerpetualCache 的 HashMap 本地缓存，其存储作用域为 Session，当Session进行flush或close之后，该Session中的所有Cache就将清空，默认打开一级缓存  
+> 二级缓存是基于namespace和mapper的作用域起作用的，不是依赖于SQL session，默认也是采用 PerpetualCache，HashMap 存储。需要单独开启，一个是核心配置，一个是mapper映射文件
+
+‍
+
+本地缓存，基于PerpetualCache，本质是一个HashMap  
+一级缓存：作用域是session级别  
+二级缓存：作用域是namespace和mapper的作用域，不依赖于session
+
+‍
+
+‍
+
+### 一级缓存
+
+一级缓存: 基于 PerpetualCache 的 HashMap 本地缓存，其存储作用域为 Session，当Session进行flush或close之后，该Session中的所有Cache就将清空，默认打开一级缓存
+
+‍
+
+### 二级缓存
+
+二级缓存是基于namespace和mapper的作用域起作用的，不是依赖于SQL session，默认也是采用 PerpetualCache，HashMap 存储
+
+‍
+
+注意
+
+1，对于缓存数据更新机制，当某一个作用域(一级缓存 Session/二级缓存Namespaces)的进行了新增、修改、删除操作后，默认该作用域下所有 select 中的缓存将被 clear  
+2，二级缓存需要缓存的数据实现Serializable接口  
+3，只有会话提交或者关闭以后，一级缓存中的数据才会转移到二级缓存中

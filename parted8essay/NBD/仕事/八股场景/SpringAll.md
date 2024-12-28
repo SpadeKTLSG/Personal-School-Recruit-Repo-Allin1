@@ -12,6 +12,23 @@
 
 ‍
 
+### 说几个AOP的注解
+
+‍
+
+1. ​`@Aspect`​：用于定义一个切面类。
+2. ​`@Pointcut`​：用于定义一个切入点表达式。
+3. ‍
+4. ​`@Before`​：用于在目标方法执行之前执行通知。
+5. ​`@After`​：用于在目标方法执行之后执行通知。
+6. ​`@AfterReturning`​：用于在目标方法成功返回结果之后执行通知。
+7. ​`@AfterThrowing`​：用于在目标方法抛出异常后执行通知。
+8. ​`@Around`​：用于在目标方法执行前后执行通知。
+
+‍
+
+‍
+
 ‍
 
 ### spring 的 bean 的后置处理器，就是像 BeanPostProcessor 这个后置处理器你之前有了解过吗？
@@ -208,6 +225,53 @@ Spring自己的 拦截器, 过滤器
 Nginx, 网关, 前端Vue
 
 ‍
+
+‍
+
+### 在创建Controller的注解时, 使用Request和post有什么区别
+
+‍
+
+1. **@RequestMapping**:
+
+    * 可以用于映射任何HTTP请求方法（GET, POST, PUT, DELETE等）。
+    * 需要通过`method`​属性指定请求方法类型。
+    * 适用于需要处理多种HTTP请求方法的情况。
+2. **@PostMapping**:
+
+    * 专门用于映射HTTP POST请求。
+    * 是`@RequestMapping`​的快捷方式，等同于`@RequestMapping(method = RequestMethod.POST)`​。
+    * 适用于只处理POST请求的情况。
+
+‍
+
+‍
+
+### 从请求中获取参数, 除了注解形式还有吗
+
+通过HttpServletRequest对象来获取参数
+
+```java
+@RestController
+@RequestMapping("/api")
+public class MyController {
+
+    @GetMapping("/getExample")
+    public String getExample(HttpServletRequest request) {
+        String param = request.getParameter("paramName");
+        return "Parameter value: " + param;
+    }
+
+    @PostMapping("/postExample")
+    public String postExample(HttpServletRequest request) {
+        String param = request.getParameter("paramName");
+        return "Parameter value: " + param;
+    }
+}
+```
+
+HttpServletRequest对象用于获取请求参数。  
+getParameter方法用于获取指定名称的参数值。
 
 ‍
 
@@ -944,9 +1008,27 @@ aop面向切面编程使用非常广泛，几乎适用于一切需要统一化�
 
 ‍
 
+### 场景？
+
+AOP（面向切面编程）除了用于日志记录，还可以用于以下场景：
+
+1. **事务管理**：在方法执行前后自动管理事务的开始和提交/回滚。
+2. **安全性检查**：在方法执行前进行权限验证，确保用户有权限执行该操作。
+3. **性能监控**：在方法执行前后记录方法的执行时间，进行性能分析。
+4. **异常处理**：统一处理方法执行过程中抛出的异常，进行日志记录或错误通知。
+5. **缓存管理**：在方法执行前检查缓存，避免重复计算；在方法执行后更新缓存。
+6. **资源管理**：在方法执行前后管理资源的分配和释放，如数据库连接、文件句柄等。
+7. **审计跟踪**：记录方法调用的详细信息，如调用者、参数、返回值等，用于审计和跟踪。
+
+这些场景都可以通过AOP来实现，从而减少代码的重复，提高代码的可维护性和可读性。
+
+‍
+
+‍
+
 ### 其他概念
 
-AOP（面向切面编程，Aspect-Oriented Programming）是一种编程范式，旨在通过分离横切关注点（cross-cutting concerns��来提高代码的模块化。横切关注点是指那些在多个模块中都会涉及的功能，例如日志记录、安全性、事务管理等。
+AOP（面向切面编程，Aspect-Oriented Programming）是一种编程范式，旨在通过分离横切关注点提高代码的模块化。横切关注点是指那些在多个模块中都会涉及的功能，例如日志记录、安全性、事务管理等。
 
 ‍
 
@@ -1412,8 +1494,920 @@ Spring Boot 启动时会打印 Banner 图片
 
 ‍
 
+# Temp
+
 ‍
+
+## Spring框架中的单例bean是线程安全的吗？
 
 ‍
 
 ‍
+
+singleton : bean在每个Spring IOC容器中只有一个实例。  
+prototype：一个bean的定义可以有多个实例。
+
+不是完全线程安全的
+
+> Spring bean并没有可变的状态(比如Service类和DAO类)，所以在某种程度上说Spring的单例bean是线程安全的。
+>
+> 但是里面的成员变量需考虑线程安全
+
+不是线程安全的  
+Spring框架中有一个@Scope注解，默认的值就是singleton，单例的。  
+因为一般在spring的bean的中都是注入无状态的对象，没有线程安全问题，如果在bean中定义了可修改的成员变量，是要考虑线程安全问题的，可以使用多例或者加锁来解决
+
+‍
+
+> 当多用户同时请求一个服务时，容器会给每一个请求分配一个线程，这是多个线程会并发执行该请求对应的业务逻辑（成员方法），如果该处理逻辑中有对该单列状态的修改（体现为该单例的成员属性），则必须考虑线程同步问题。
+>
+> Spring框架并没有对单例bean进行任何多线程的封装处理。关于单例bean的线程安全和并发问题需要开发者自行去搞定。
+>
+> 比如：我们通常在项目中使用的Spring bean都是不可可变的状态(比如Service类和DAO类)，所以在某种程度上说Spring的单例bean是线程安全的。
+>
+> 如果你的bean有多种状态的话（比如 View Model对象），就需要自行保证线程安全。最浅显的解决办法就是将多态bean的作用由“**singleton**”变更为“**prototype**”。
+
+‍
+
+## Spring中的事务是如何实现的
+
+Spring支持编程式事务管理和声明式事务管理两种方式。
+
+* 编程式事务控制：需使用TransactionTemplate来进行实现，对业务代码有侵入性，项目中很少使用
+* 声明式事务管理：声明式事务管理建立在AOP之上的。其本质是通过AOP功能，对方法前后进行拦截，将事务处理的功能编织到拦截的方法中，也就是在目标方法开始之前加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。
+
+‍
+
+## Spring中事务失效的场景有哪些
+
+异常捕获处理，自己处理了异常，没有抛出，解决：手动抛出  
+抛出检查异常，配置rollbackFor属性为Exception  
+非public方法导致的事务失效，改为public
+
+‍
+
+## Spring的bean的生命周期
+
+‍
+
+> 嗯！，这个步骤还是挺多的，我之前看过一些源码，它大概流程是这样的
+>
+> 首先会通过一个非常重要的类，叫做BeanDefinition获取bean的定义信息，这里面就封装了bean的所有信息，比如，类的全路径，是否是延迟加载，是否是单例等等这些信息
+>
+> 在创建bean的时候，第一步是调用构造函数实例化bean
+>
+> 第二步是bean的依赖注入，比如一些set方法注入，像平时开发用的@Autowire都是这一步完成
+>
+> 第三步是处理Aware接口，如果某一个bean实现了Aware接口就会重写方法执行
+>
+> 第四步是bean的后置处理器BeanPostProcessor，这个是前置处理器
+>
+> 第五步是初始化方法，比如实现了接口InitializingBean或者自定义了方法init-method标签或@PostContruct
+>
+> 第六步是执行了bean的后置处理器BeanPostProcessor，主要是对bean进行增强，有可能在这里产生代理对象
+>
+> 最后一步是销毁bean
+
+​![image](assets/image-20241114234835-i9yb5gm.png)​
+
+‍
+
+1. 通过BeanDefinition获取bean的定义信息
+2. 调用构造函数实例化bean
+3. bean的依赖注入
+4. 处理Aware接口(BeanNameAware、BeanFactoryAware、ApplicationContextAware)
+5. Bean的后置处理器BeanPostProcessor-前置
+6. 初始化方法(InitializingBean、init-method)
+7. Bean的后置处理器BeanPostProcessor-后置
+8. 销毁bean
+
+‍
+
+‍
+
+‍
+
+## Spring中的循环引用
+
+‍
+
+> 嗯，好的，我来解释一下
+>
+> 循环依赖：循环依赖其实就是循环引用,也就是两个或两个以上的bean互相持有对方,最终形成闭环。比如A依赖于B,B依赖于A
+>
+> 循环依赖在spring中是允许存在，spring框架依据三级缓存已经解决了大部分的循环依赖
+>
+> ①一级缓存：单例池，缓存已经经历了完整的生命周期，已经初始化完成的bean对象
+>
+> ②二级缓存：缓存早期的bean对象（生命周期还没走完）
+>
+> ③三级缓存：缓存的是ObjectFactory，表示对象工厂，用来创建某个对象的
+>
+> 那具体解决流程清楚吗？
+>
+> **候选人**：
+>
+> 第一，先实例A对象，同时会创建ObjectFactory对象存入三级缓存singletonFactories
+>
+> 第二，A在初始化的时候需要B对象，这个走B的创建的逻辑
+>
+> 第三，B实例化完成，也会创建ObjectFactory对象存入三级缓存singletonFactories
+>
+> 第四，B需要注入A，通过三级缓存中获取ObjectFactory来生成一个A的对象同时存入二级缓存，这个是有两种情况，一个是可能是A的普通对象，另外一个是A的代理对象，都可以让ObjectFactory来生产对应的对象，这也是三级缓存的关键
+>
+> 第五，B通过从通过二级缓存earlySingletonObjects 获得到A的对象后可以正常注入，B创建成功，存入一级缓存singletonObjects
+>
+> 第六，回到A对象初始化，因为B对象已经创建完成，则可以直接注入B，A创建成功存入一次缓存singletonObjects
+>
+> 第七，二级缓存中的临时对象A清除
+>
+> **面试官**：构造方法出现了循环依赖怎么解决？
+>
+> **候选人**：
+>
+> 由于bean的生命周期中构造函数是第一个执行的，spring框架并不能解决构造函数的的依赖注入，可以使用@Lazy懒加载，什么时候需要对象再进行bean对象的创建
+
+‍
+
+如果要想打破循环依赖, 就需要一个中间人的参与, 这个中间人就是二级缓存。而需要用代理对象就需要做三层
+
+​![image](assets/image-20241114234923-z9txik9.png)​
+
+‍
+
+构造方法出现了循环依赖怎么解决？ @Lazy延迟实例化
+
+A依赖于B，B依赖于A，注入的方式是构造函数  
+原因：由于bean的生命周期中构造函数是第一个执行的，spring框架并不能解决构造函数的的依赖注入  
+解决方案：使用@Lazy进行懒加载，什么时候需要对象再进行bean对象的创建
+
+‍
+
+‍
+
+循环依赖：循环依赖其实就是循环引用,也就是两个或两个以上的bean互相持有对方,最终形成闭环。比如A依赖于B,B依赖于A
+
+循环依赖在spring中是允许存在，spring框架依据三级缓存已经解决了大部分的循环依赖  
+一级缓存：单例池，缓存已经经历了完整的生命周期，已经初始化完成的bean对象  
+二级缓存：缓存早期的bean对象（生命周期还没走完）  
+三级缓存：缓存的是ObjectFactory，表示对象工厂，用来创建某个对象的
+
+‍
+
+## SpringMVC的执行流程
+
+前后端分离阶段（接口开发，异步）
+
+​![image](assets/image-20241114235040-8hk7c0d.png)​
+
+‍
+
+1. 用户发送出请求到前端控制器DispatcherServlet
+2. DispatcherServlet收到请求调用HandlerMapping（处理器映射器）
+3. HandlerMapping找到具体的处理器，生成处理器对象及处理器拦截器(如果有)，再一起返回给DispatcherServlet。
+4. DispatcherServlet调用HandlerAdapter（处理器适配器）
+5. HandlerAdapter经过适配调用具体的处理器（Handler/Controller）
+6. 方法上添加了@ResponseBody
+7. 通过HttpMessageConverter来返回结果转换为JSON并响应
+
+‍
+
+## Springboot自动配置原理
+
+‍
+
+> Springboot自动配置原理
+>
+> **候选人**：
+>
+> 嗯，好的，它是这样的。
+>
+> 在Spring Boot项目中的引导类上有一个注解@SpringBootApplication，这个注解是对三个注解进行了封装，分别是：
+>
+> * @SpringBootConfiguration
+> * @EnableAutoConfiguration
+> * @ComponentScan
+>
+> 其中`@EnableAutoConfiguration`​是实现自动化配置的核心注解。
+>
+> 该注解通过`@Import`​注解导入对应的配置选择器。关键的是内部就是读取了该项目和该项目引用的Jar包的的classpath路径下**META-INF/spring.**​**==factories==**文件中的所配置的类的全类名。
+>
+> 在这些配置类中所定义的Bean会根据条件注解所**指定的条件来决定**是否需要将其导入到Spring容器中。
+>
+> 一般条件判断会有像`@ConditionalOnClass`​这样的注解，判断是否有对应的class文件，如果有则加载该类，把这个配置类的所有的Bean放入spring容器中使用。
+
+‍
+
+@SpringApplication这个封装了三核心注解
+
+@SpringBootConfiguration：该注解与 @Configuration 注解作用相同，用来声明当前也是一个配置类。  
+@ComponentScan：组件扫描，默认扫描当前引导类所在包及其子包。  
+@EnableAutoConfiguration：SpringBoot实现自动化配置的核心注解。
+
+‍
+
+​![image](assets/image-20241114235213-q1cknvd.png)​
+
+‍
+
+在Spring Boot项目中的引导类上有一个注解@SpringBootApplication，这个注解是对三个注解进行了封装，分别是：  
+@SpringBootConfiguration  
+@EnableAutoConfiguration  
+@ComponentScan
+
+‍
+
+2,  其中@EnableAutoConfiguration是实现自动化配置的核心注解。 该注解通过@Import注解导入对应的配置选择器。  
+内部就是读取了该项目和该项目引用的Jar包的的classpath路径下META-INF/spring.factories文件中的所配置的类的全类名。 在这些配置类中所定义的Bean会根据条件注解所指定的条件来决定是否需要将其导入到Spring容器中。
+
+‍
+
+3, 条件判断会有像@ConditionalOnClass这样的注解，判断是否有对应的class文件，如果有则加载该类，把这个配置类的所有的Bean放入spring容器中使用。
+
+‍
+
+## 三家伙的常见注解有哪些
+
+Spring
+
+|注解|说明|
+| ------------------------------------------------| --------------------------------------------------------------|
+|@Component、@Controller、@Service、@Repository|使用在类上用于实例化Bean|
+|@Autowired|使用在字段上用于根据类型依赖注入|
+|@Qualifier|结合@Autowired一起使用用于根据名称进行依赖注入|
+|@Scope|标注Bean的作用范围|
+|@Configuration|指定当前类是一个Spring配置类，当创建容器时会从该类上加载注解|
+|@ComponentScan|用于指定Spring在初始化容器时要扫描的包|
+|@Bean|使用在方法上，标注将该方法的返回值存储到Spring容器中|
+|@Import|使用@Import导入的类会被Spring加载到IOC容器中|
+|@Aspect、@Before、@After、@Around、@Pointcut|用于切面编程（AOP）|
+
+‍
+
+MVC
+
+|注解|说明|
+| -----------------| --------------------------------------------------------------------------------------------------|
+|@RequestMapping|用于映射请求路径，可以定义在类上和方法上。用于类上，则表示类中的所有的方法都是以该地址作为父路径|
+|@RequestBody|注解实现接收http请求的json数据，将json转换为java对象|
+|@RequestParam|指定请求参数的名称|
+|@PathViriable|从请求路径下中获取请求参数(/user/{id})，传递给方法的形式参数|
+|@ResponseBody|注解实现将controller方法返回对象转化为json对象响应给客户端|
+|@RequestHeader|获取指定的请求头数据|
+|@RestController|@Controller + @ResponseBody|
+
+‍
+
+Boot
+
+|注解|
+| --------------------------|
+|@SpringBootConfiguration|
+|@EnableAutoConfiguration|
+|@ComponentScan|
+|@SpringBootApplication|
+
+‍
+
+‍
+
+## AOP通知顺序
+
+‍
+
+正常
+
+1. @Around环绕A
+2. @Before前置
+3. 业务
+4. @AfterReturning返回
+5. @After后置
+6. @Around环绕B
+
+‍
+
+异常
+
+1. @Around环绕A
+2. @Before前置
+3. 业务
+4. @AfterThrowing异常
+5. @After后置
+6. 没了, 这个会丢掉
+
+由于异常情况, 环绕会丢数据, 得取舍.
+
+‍
+
+‍
+
+# www
+
+‍
+
+## Spring bean 生命周期
+
+**要求**
+
+* 掌握 Spring bean 的生命周期
+
+**bean 生命周期 概述**
+
+bean 的生命周期从调用 beanFactory 的 getBean 开始，到这个 bean 被销毁，可以总结为以下七个阶段：
+
+1. 处理名称，检查缓存
+2. 处理父子容器
+3. 处理 dependsOn
+4. 选择 scope 策略
+5. 创建 bean
+6. 类型转换处理
+7. 销毁 bean
+
+> ***注意***
+>
+> * 划分的阶段和名称并不重要，重要的是理解整个过程中做了哪些事情
+
+**1. 处理名称，检查缓存**
+
+* 这一步会处理别名，将别名解析为实际名称
+* 对 FactoryBean 也会特殊处理，如果以 & 开头表示要获取 FactoryBean 本身，否则表示要获取其产品
+* 这里针对单例对象会检查一级、二级、三级缓存
+
+  * singletonFactories 三级缓存，存放单例工厂对象
+  * earlySingletonObjects 二级缓存，存放单例工厂的产品对象
+
+    * 如果发生循环依赖，产品是代理；无循环依赖，产品是原始对象
+  * singletonObjects 一级缓存，存放单例成品对象
+
+**2. 处理父子容器**
+
+* 如果当前容器根据名字找不到这个 bean，此时若父容器存在，则执行父容器的 getBean 流程
+* 父子容器的 bean 名称可以重复
+
+**3. 处理 dependsOn**
+
+* 如果当前 bean 有通过 dependsOn 指定了非显式依赖的 bean，这一步会提前创建这些 dependsOn 的 bean
+* 所谓非显式依赖，就是指两个 bean 之间不存在直接依赖关系，但需要控制它们的创建先后顺序
+
+**4. 选择 scope 策略**
+
+* 对于 singleton scope，首先到单例池去获取 bean，如果有则直接返回，没有再进入创建流程
+* 对于 prototype scope，每次都会进入创建流程
+* 对于自定义 scope，例如 request，首先到 request 域获取 bean，如果有则直接返回，没有再进入创建流程
+
+**5.1 创建 bean - 创建 bean 实例**
+
+|**要点**|**总结**|
+| --------------------------------------| -------------------------------------------------------------------------------------------------------------------------------------------------------|
+|有自定义 TargetSource 的情况|由 AnnotationAwareAspectJAutoProxyCreator 创建代理返回|
+|Supplier 方式创建 bean 实例|为 Spring 5.0 新增功能，方便编程方式创建 bean 实例|
+|FactoryMethod 方式 创建 bean 实例|① 分成静态工厂与实例工厂；② 工厂方法若有参数，需要对工厂方法参数进行解析，利用 resolveDependency；③ 如果有多个工厂方法候选者，还要进一步按权重筛选|
+|AutowiredAnnotationBeanPostProcessor|① 优先选择带 @Autowired 注解的构造；② 若有唯一的带参构造，也会入选|
+|mbd.getPreferredConstructors|选择所有公共构造，这些构造之间按权重筛选|
+|采用默认构造|如果上面的后处理器和 BeanDefiniation 都没找到构造，采用默认构造，即使是私有的|
+
+**5.2 创建 bean - 依赖注入**
+
+|**要点**|**总结**|
+| --------------------------------------| -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|AutowiredAnnotationBeanPostProcessor|识别 @Autowired 及 @Value 标注的成员，封装为 InjectionMetadata 进行依赖注入|
+|CommonAnnotationBeanPostProcessor|识别 @Resource 标注的成员，封装为 InjectionMetadata 进行依赖注入|
+|resolveDependency|用来查找要装配的值，可以识别：① Optional；② ObjectFactory 及 ObjectProvider；③ @Lazy 注解；④ @Value 注解（\${ }, #{ }, 类型转换）；⑤ 集合类型（Collection，Map，数组等）；⑥ 泛型和 @Qualifier（用来区分类型歧义）；⑦ primary 及名字匹配（用来区分类型歧义）|
+|AUTOWIRE\_BY\_NAME|根据成员名字找 bean 对象，修改 mbd 的 propertyValues，不会考虑简单类型的成员|
+|AUTOWIRE\_BY\_TYPE|根据成员类型执行 resolveDependency 找到依赖注入的值，修改 mbd 的 propertyValues|
+|applyPropertyValues|根据 mbd 的 propertyValues 进行依赖注入（即xml中 \`\<property name ref|
+
+**5.3 创建 bean - 初始化**
+
+|**要点**|**总结**|
+| -----------------------| -------------------------------------------------------------------------------------------|
+|内置 Aware 接口的装配|包括 BeanNameAware，BeanFactoryAware 等|
+|扩展 Aware 接口的装配|由 ApplicationContextAwareProcessor 解析，执行时机在 postProcessBeforeInitialization|
+|@PostConstruct|由 CommonAnnotationBeanPostProcessor 解析，执行时机在 postProcessBeforeInitialization|
+|InitializingBean|通过接口回调执行初始化|
+|initMethod|根据 BeanDefinition 得到的初始化方法执行初始化，即 `<bean init-method>`​ 或 @Bean(initMethod)|
+|创建 aop 代理|由 AnnotationAwareAspectJAutoProxyCreator 创建，执行时机在 postProcessAfterInitialization|
+
+**5.4 创建 bean - 注册可销毁 bean**
+
+在这一步判断并登记可销毁 bean
+
+* 判断依据
+
+  * 如果实现了 DisposableBean 或 AutoCloseable 接口，则为可销毁 bean
+  * 如果自定义了 destroyMethod，则为可销毁 bean
+  * 如果采用 @Bean 没有指定 destroyMethod，则采用自动推断方式获取销毁方法名（close，shutdown）
+  * 如果有 @PreDestroy 标注的方法
+* 存储位置
+
+  * singleton scope 的可销毁 bean 会存储于 beanFactory 的成员当中
+  * 自定义 scope 的可销毁 bean 会存储于对应的域对象当中
+  * prototype scope 不会存储，需要自己找到此对象销毁
+* 存储时都会封装为 DisposableBeanAdapter 类型对销毁方法的调用进行适配
+
+**6. 类型转换处理**
+
+* 如果 getBean 的 requiredType 参数与实际得到的对象类型不同，会尝试进行类型转换
+
+**7. 销毁 bean**
+
+* 销毁时机
+
+  * singleton bean 的销毁在 ApplicationContext.close 时，此时会找到所有 DisposableBean 的名字，逐一销毁
+  * 自定义 scope bean 的销毁在作用域对象生命周期结束时
+  * prototype bean 的销毁可以通过自己手动调用 AutowireCapableBeanFactory.destroyBean 方法执行销毁
+* 同一 bean 中不同形式销毁方法的调用次序
+
+  * 优先后处理器销毁，即 @PreDestroy
+  * 其次 DisposableBean 接口销毁
+  * 最后 destroyMethod 销毁（包括自定义名称，推断名称，AutoCloseable 接口 多选一）
+
+‍
+
+‍
+
+## Spring 事务失效
+
+**要求**
+
+* 掌握事务失效的八种场景
+
+‍
+
+**1. 抛出检查异常导致事务不能正确回滚**
+
+```java
+@Service
+public class Service1 {
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional
+    public void transfer(int from, int to, int amount) throws FileNotFoundException {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            new FileInputStream("aaa");
+            accountMapper.update(to, amount);
+        }
+    }
+}
+```
+
+* 原因：Spring 默认只会回滚非检查异常
+* 解法：配置 rollbackFor 属性
+
+  * ​`@Transactional(rollbackFor = Exception.class)`​
+
+**2. 业务方法内自己 try-catch 异常导致事务不能正确回滚**
+
+```java
+@Service
+public class Service2 {
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void transfer(int from, int to, int amount)  {
+        try {
+            int fromBalance = accountMapper.findBalanceBy(from);
+            if (fromBalance - amount >= 0) {
+                accountMapper.update(from, -1 * amount);
+                new FileInputStream("aaa");
+                accountMapper.update(to, amount);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+* 原因：事务通知只有捉到了目标抛出的异常，才能进行后续的回滚处理，如果目标自己处理掉异常，事务通知无法知悉
+* 解法1：异常原样抛出
+
+  * 在 catch 块添加 `throw new RuntimeException(e);`​
+* 解法2：手动设置 TransactionStatus.setRollbackOnly()
+
+  * 在 catch 块添加 `TransactionInterceptor.currentTransactionStatus().setRollbackOnly();`​
+
+**3. aop 切面顺序导致导致事务不能正确回滚**
+
+```java
+@Service
+public class Service3 {
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void transfer(int from, int to, int amount) throws FileNotFoundException {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            new FileInputStream("aaa");
+            accountMapper.update(to, amount);
+        }
+    }
+}
+```
+
+```java
+@Aspect
+public class MyAspect {
+    @Around("execution(* transfer(..))")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        LoggerUtils.get().debug("log:{}", pjp.getTarget());
+        try {
+            return pjp.proceed();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
+```
+
+* 原因：事务切面优先级最低，但如果自定义的切面优先级和他一样，则还是自定义切面在内层，这时若自定义切面没有正确抛出异常…
+* 解法1、2：同情况2 中的解法:1、2
+* 解法3：调整切面顺序，在 MyAspect 上添加 `@Order(Ordered.LOWEST_PRECEDENCE - 1)`​ （不推荐）
+
+**4. 非 public 方法导致的事务失效**
+
+```java
+@Service
+public class Service4 {
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional
+    void transfer(int from, int to, int amount) throws FileNotFoundException {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            accountMapper.update(to, amount);
+        }
+    }
+}
+```
+
+* 原因：Spring 为方法创建代理、添加事务通知、前提条件都是该方法是 public 的
+* 解法1：改为 public 方法
+* 解法2：添加 bean 配置如下（不推荐）
+
+```java
+@Bean
+public TransactionAttributeSource transactionAttributeSource() {
+    return new AnnotationTransactionAttributeSource(false);
+}
+```
+
+**5. 父子容器导致的事务失效**
+
+```java
+package day04.tx.app.service;
+
+// ...
+
+@Service
+public class Service5 {
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void transfer(int from, int to, int amount) throws FileNotFoundException {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            accountMapper.update(to, amount);
+        }
+    }
+}
+```
+
+控制器类
+
+```java
+package day04.tx.app.controller;
+
+// ...
+
+@Controller
+public class AccountController {
+
+    @Autowired
+    public Service5 service;
+
+    public void transfer(int from, int to, int amount) throws FileNotFoundException {
+        service.transfer(from, to, amount);
+    }
+}
+```
+
+App 配置类
+
+```java
+@Configuration
+@ComponentScan("day04.tx.app.service")
+@EnableTransactionManagement
+// ...
+public class AppConfig {
+    // ... 有事务相关配置
+}
+```
+
+Web 配置类
+
+```java
+@Configuration
+@ComponentScan("day04.tx.app")
+// ...
+public class WebConfig {
+    // ... 无事务配置
+}
+```
+
+现在配置了父子容器，WebConfig 对应子容器，AppConfig 对应父容器，发现事务依然失效
+
+* 原因：子容器扫描范围过大，把未加事务配置的 service 扫描进来
+* 解法1：各扫描各的，不要图简便
+* 解法2：不要用父子容器，所有 bean 放在同一容器
+
+**6. 调用本类方法导致传播行为失效**
+
+```java
+@Service
+public class Service6 {
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void foo() throws FileNotFoundException {
+        LoggerUtils.get().debug("foo");
+        bar();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void bar() throws FileNotFoundException {
+        LoggerUtils.get().debug("bar");
+    }
+}
+```
+
+* 原因：本类方法调用不经过代理，因此无法增强
+* 解法1：依赖注入自己（代理）来调用
+* 解法2：通过 AopContext 拿到代理对象，来调用
+* 解法3：通过 CTW，LTW 实现功能增强
+
+解法1
+
+```java
+@Service
+public class Service6 {
+
+	@Autowired
+	private Service6 proxy; // 本质上是一种循环依赖
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void foo() throws FileNotFoundException {
+        LoggerUtils.get().debug("foo");
+		System.out.println(proxy.getClass());
+		proxy.bar();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void bar() throws FileNotFoundException {
+        LoggerUtils.get().debug("bar");
+    }
+}
+```
+
+解法2，还需要在 AppConfig 上添加 `@EnableAspectJAutoProxy(exposeProxy = true)`​
+
+```java
+@Service
+public class Service6 {
+  
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    public void foo() throws FileNotFoundException {
+        LoggerUtils.get().debug("foo");
+        ((Service6) AopContext.currentProxy()).bar();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void bar() throws FileNotFoundException {
+        LoggerUtils.get().debug("bar");
+    }
+}
+```
+
+**7. @Transactional 没有保证原子行为**
+
+```java
+@Service
+public class Service7 {
+
+    private static final Logger logger = LoggerFactory.getLogger(Service7.class);
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public void transfer(int from, int to, int amount) {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        logger.debug("更新前查询余额为: {}", fromBalance);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            accountMapper.update(to, amount);
+        }
+    }
+
+    public int findBalance(int accountNo) {
+        return accountMapper.findBalanceBy(accountNo);
+    }
+}
+```
+
+上面的代码实际上是有 bug 的，假设 from 余额为 1000，两个线程都来转账 1000，可能会出现扣减为负数的情况
+
+* 原因：事务的原子性仅涵盖 insert、update、delete、select … for update 语句，select 方法并不阻塞
+
+**8. @Transactional 方法导致的 synchronized 失效**
+
+针对上面的问题，能否在方法上加 synchronized 锁来解决呢？
+
+```java
+@Service
+public class Service7 {
+
+    private static final Logger logger = LoggerFactory.getLogger(Service7.class);
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Transactional(rollbackFor = Exception.class)
+    public synchronized void transfer(int from, int to, int amount) {
+        int fromBalance = accountMapper.findBalanceBy(from);
+        logger.debug("更新前查询余额为: {}", fromBalance);
+        if (fromBalance - amount >= 0) {
+            accountMapper.update(from, -1 * amount);
+            accountMapper.update(to, amount);
+        }
+    }
+
+    public int findBalance(int accountNo) {
+        return accountMapper.findBalanceBy(accountNo);
+    }
+}
+```
+
+答案是不行，原因如下：
+
+* synchronized 保证的仅是目标方法的原子性，环绕目标方法的还有 commit 等操作，它们并未处于 sync 块内
+
+* 解法1：synchronized 范围应扩大至代理方法调用
+* 解法2：使用 select … for update 替换 select
+
+‍
+
+‍
+
+## Spring 中的设计模式
+
+**要求**
+
+* 掌握 Spring 中常见的设计模式
+
+**1. Spring 中的 Singleton**
+
+请大家区分 singleton pattern 与 Spring 中的 singleton bean
+
+* 根据单例模式的目的 *Ensure a class only has one instance, and provide a global point of access to it*
+* 显然 Spring 中的 singleton bean 并非实现了单例模式，singleton bean 只能保证每个容器内，相同 id 的 bean 单实例
+* 当然 Spring 中也用到了单例模式，例如
+
+  * org.springframework.transaction.TransactionDefinition#withDefaults
+  * org.springframework.aop.TruePointcut#INSTANCE
+  * org.springframework.aop.interceptor.ExposeInvocationInterceptor#ADVISOR
+  * org.springframework.core.annotation.AnnotationAwareOrderComparator#INSTANCE
+  * org.springframework.core.OrderComparator#INSTANCE
+
+**2. Spring 中的 Builder**
+
+定义 *Separate the construction of a complex object from its representation so that the same construction process can create different representations*
+
+它的主要亮点有三处：
+
+1. 较为灵活的构建产品对象
+2. 在不执行最后 build 方法前，产品对象都不可用
+3. 构建过程采用链式调用，看起来比较爽
+
+Spring 中体现 Builder 模式的地方：
+
+* org.springframework.beans.factory.support.BeanDefinitionBuilder
+* org.springframework.web.util.UriComponentsBuilder
+* org.springframework.http.ResponseEntity.HeadersBuilder
+* org.springframework.http.ResponseEntity.BodyBuilder
+
+**3. Spring 中的 Factory Method**
+
+定义 *Define an interface for creating an object, but let subclasses decide which class to instantiate. Factory Method lets a class defer instantiation to subclasses*
+
+根据上面的定义，Spring 中的 ApplicationContext 与 BeanFactory 中的 getBean 都可以视为工厂方法，它隐藏了 bean （产品）的创建过程和具体实现
+
+Spring 中其它工厂：
+
+* org.springframework.beans.factory.FactoryBean
+* @Bean 标注的静态方法及实例方法
+* ObjectFactory 及 ObjectProvider
+
+前两种工厂主要封装第三方的 bean 的创建过程，后两种工厂可以推迟 bean 创建，解决循环依赖及单例注入多例等问题
+
+**4. Spring 中的 Adapter**
+
+定义 *Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces*
+
+典型的实现有两处：
+
+* org.springframework.web.servlet.HandlerAdapter – 因为控制器实现有各种各样，比如有
+
+  * 大家熟悉的 @RequestMapping 标注的控制器实现
+  * 传统的基于 Controller 接口（不是 @Controller注解啊）的实现
+  * 较新的基于 RouterFunction 接口的实现
+  * 它们的处理方法都不一样，为了统一调用，必须适配为 HandlerAdapter 接口
+* org.springframework.beans.factory.support.DisposableBeanAdapter – 因为销毁方法多种多样，因此都要适配为 DisposableBean 来统一调用销毁方法
+
+**5. Spring 中的 Composite**
+
+定义 *Compose objects into tree structures to represent part-whole hierarchies. Composite lets clients treat individual objects and compositions of objects uniformly*
+
+典型实现有：
+
+* org.springframework.web.method.support.HandlerMethodArgumentResolverComposite
+* org.springframework.web.method.support.HandlerMethodReturnValueHandlerComposite
+* org.springframework.web.servlet.handler.HandlerExceptionResolverComposite
+* org.springframework.web.servlet.view.ViewResolverComposite
+
+composite 对象的作用是，将分散的调用集中起来，统一调用入口，它的特征是，与具体干活的实现实现同一个接口，当调用 composite 对象的接口方法时，其实是委托具体干活的实现来完成
+
+**6. Spring 中的 Decorator**
+
+定义 *Attach additional responsibilities to an object dynamically. Decorators provide a flexible alternative to subclassing for extending functionality*
+
+典型实现：
+
+* org.springframework.web.util.ContentCachingRequestWrapper
+
+**7. Spring 中的 Proxy**
+
+定义 *Provide a surrogate or placeholder for another object to control access to it*
+
+装饰器模式注重的是功能增强，避免子类继承方式进行功能扩展，而代理模式更注重控制目标的访问
+
+典型实现：
+
+* org.springframework.aop.framework.JdkDynamicAopProxy
+* org.springframework.aop.framework.ObjenesisCglibAopProxy
+
+‍
+
+**8. Spring 中的 Chain of Responsibility**
+
+定义 *Avoid coupling the sender of a request to its receiver by giving more than one object a chance to handle the request. Chain the receiving objects and pass the request along the chain until an object handles it*
+
+典型实现：
+
+* org.springframework.web.servlet.HandlerInterceptor
+
+‍
+
+**9. Spring 中的 Observer**
+
+定义 *Define a one-to-many dependency between objects so that when one object changes state, all its dependents are notified and updated automatically*
+
+典型实现：
+
+* org.springframework.context.ApplicationListener
+* org.springframework.context.event.ApplicationEventMulticaster
+* org.springframework.context.ApplicationEvent
+
+**10. Spring 中的 Strategy**
+
+定义 *Define a family of algorithms, encapsulate each one, and make them interchangeable. Strategy lets the algorithm vary independently from clients that use it*
+
+典型实现：
+
+* org.springframework.beans.factory.support.InstantiationStrategy
+* org.springframework.core.annotation.MergedAnnotations.SearchStrategy
+* org.springframework.boot.autoconfigure.condition.SearchStrategy
+
+**11. Spring 中的 Template Method**
+
+定义 *Define the skeleton of an algorithm in an operation, deferring some steps to subclasses. Template Method lets subclasses redefine certain steps of an algorithm without changing the algorithm's structure*
+
+典型实现：
+
+* 大部分以 Template 命名的类，如 JdbcTemplate，TransactionTemplate
+* 很多以 Abstract 命名的类，如 AbstractApplicationContext

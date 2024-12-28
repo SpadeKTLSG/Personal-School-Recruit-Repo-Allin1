@@ -101,11 +101,93 @@
 
 ‍
 
-### 拉取分支
+‍
+
+### 删除除了master之外的所有分支
+
+```text
+git branch | grep -v "master" | xargs git branch -D
+```
+
+**注意点**
+
+* 执行前需要切换到master分支执行
+* 当前分支未做修改
+
+‍
+
+### 删除指定分支
+
+#### 删除本地分支
+
+```text
+git branch -d 分支名（remotes/origin/分支名）
+```
+
+#### 强制删除本地分支
+
+```text
+git branch -D 分支名
+```
+
+#### 删除远程分支
+
+```text
+git push origin --delete 分支名（remotes/origin/分支名）
+```
+
+‍
+
+‍
+
+### 提交所有变化
+
+```java
+git add .
+
+git commit -m'commit message'
+
+git push
+```
+
+‍
+
+### 提交指定文件
+
+```text
+git status
+
+// 修改的文件
+
+git commit filepath1 -m'commit message'
+
+```
+
+‍
+
+‍
+
+### git pull冲突解决
+
+原因：其他人修改了某一文件的内容，而本地文件也被修改了，pull代码的时候就会产生冲突。
+
+解决：贮存更改
+
+操作步骤：
+
+* git stash：将工作区恢复到上次提交的内容，同时备份本地修改
+* git pull
+* git stash pop：弹出最近保存的内容，查看对应文件，解决冲突
+
+‍
 
 ‍
 
 ### 暂存
+
+‍
+
+‍
 
 ‍
 
